@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -12,8 +13,8 @@ using RSMods.Services;
 namespace RSMods.ViewModels;
 
 /// <summary>
-/// The default landing page: startup status, the resolved Rocksmith install and save folders,
-/// and the latest GitHub release notes.
+/// The default landing page: startup status, the resolved Rocksmith install and save folders, on macOS the mods
+/// library, and the latest GitHub release notes.
 /// </summary>
 internal sealed partial class StatusViewModel : ObservableObject
 {
@@ -55,6 +56,82 @@ internal sealed partial class StatusViewModel : ObservableObject
     private bool _isReady;
 
     public string SavePathDisplay => SavePathAvailable ? SavePath! : "No save folder set. Profile Edits stays disabled until one is selected.";
+
+    // ---- Mac mods library ----
+
+    private MacModsLibrary? _macMods;
+
+    /// <summary>On macOS the mods are a library the configurator installs into RS Re-ARMed's mods folder.</summary>
+    public bool IsMac => OperatingSystem.IsMacOS();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MacModsTitle), nameof(MacModsDetail), nameof(CanInstallMacMods), nameof(CanRemoveMacMods), nameof(InstallMacModsText))]
+    [NotifyCanExecuteChangedFor(nameof(InstallMacModsCommand), nameof(RemoveMacModsCommand))]
+    private MacModsState _macModsState = MacModsState.NoRearmed;
+
+    public string MacModsTitle => MacModsState switch
+    {
+        MacModsState.Installed => $"Mods installed ({_macMods?.InstalledVersion})",
+        MacModsState.UpdateAvailable => "Mods update available",
+        MacModsState.NotInstalled => "Mods not installed",
+        _ => "Mods",
+    };
+
+    public string MacModsDetail => MacModsState switch
+    {
+        MacModsState.NoRearmed => "Install RS Re-ARMed first; the mods run in it. (Or change the Rocksmith folder to its game folder.)",
+        MacModsState.RearmedTooOld => "Your RS Re-ARMed doesn't load mods. Install its latest version (1.2.0 or later), then come back.",
+        MacModsState.NoBundledLibrary => $"This build of RSMods doesn't carry the mods library. Build it with Mac/build.sh, or copy {MacModsLibrary.FileName} into RS Re-ARMed's mods folder yourself.",
+        MacModsState.NotInstalled => "Install them to use them in RS Re-ARMed.",
+        MacModsState.UpdateAvailable => $"Installed: {_macMods?.InstalledVersion ?? "unknown"}. Update to this version ({_macMods?.BundledVersion}).",
+        _ => "Start RS Re-ARMed to use them. Settings take effect while the game runs.",
+    };
+
+    public string InstallMacModsText => MacModsState == MacModsState.UpdateAvailable ? "Update Mods" : "Install Mods";
+
+    public bool CanInstallMacMods => MacModsState is MacModsState.NotInstalled or MacModsState.UpdateAvailable;
+
+    public bool CanRemoveMacMods => MacModsState is MacModsState.Installed or MacModsState.UpdateAvailable;
+
+    partial void OnRocksmithFolderChanged(string? value)
+    {
+        if (!IsMac || string.IsNullOrEmpty(value))
+            return;
+        _macMods = MacModsLibrary.ForGameFolder(value);
+        RefreshMacMods();
+    }
+
+    private void RefreshMacMods()
+    {
+        MacModsState = _macMods?.GetState() ?? MacModsState.NoRearmed;
+        // The versions in the texts can change while the state stays the same
+        OnPropertyChanged(nameof(MacModsTitle));
+        OnPropertyChanged(nameof(MacModsDetail));
+    }
+
+    [RelayCommand(CanExecute = nameof(CanInstallMacMods))]
+    private Task InstallMacModsAsync() =>
+        ChangeMacModsAsync(library => library.Install(), "Mods installed. Start RS Re-ARMed to use them.", "Install Mods");
+
+    [RelayCommand(CanExecute = nameof(CanRemoveMacMods))]
+    private Task RemoveMacModsAsync() =>
+        ChangeMacModsAsync(library => library.Remove(), "Mods removed. RS Re-ARMed starts without them.", "Remove Mods");
+
+    private async Task ChangeMacModsAsync(Action<MacModsLibrary> change, string done, string title)
+    {
+        if (_macMods is null)
+            return;
+        try
+        {
+            change(_macMods);
+            StatusMessage = done;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException)
+        {
+            await _dialogs.ShowErrorAsync(ex.Message, title);
+        }
+        RefreshMacMods();
+    }
 
     // ---- Latest release ----
 

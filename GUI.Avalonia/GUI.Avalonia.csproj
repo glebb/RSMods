@@ -51,4 +51,22 @@
     </Content>
   </ItemGroup>
 
+  <!--
+    macOS: the configurator carries the Mac mods library and installs it into RS Re-ARMed's mods folder (Home tab).
+    Mac/build.sh builds it before the configurator, when its sources changed; it ships beside the executable.
+  -->
+  <ItemGroup Condition="'$(RsModsMac)' == 'true'">
+    <MacModsSource Include="..\Mac\src\*.c;..\Mac\src\*.h;..\Mac\include\**\*.h;..\Mac\VERSION;..\Mac\build.sh" />
+    <Content Include="..\Mac\build\rearmed-mods.dylib">
+      <Link>rearmed-mods.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="BuildMacMods" BeforeTargets="BeforeBuild" Condition="'$(RsModsMac)' == 'true'"
+          Inputs="@(MacModsSource)" Outputs="..\Mac\build\rearmed-mods.dylib">
+    <Exec Command="sh &quot;$(MSBuildThisFileDirectory)../Mac/build.sh&quot;" />
+  </Target>
+
 </Project>

@@ -302,3 +302,6 @@ __pycache__/
 
 Installer/Resources/
 *.user
+
+# Mac mods library build output (Mac/build.sh)
+Mac/build/

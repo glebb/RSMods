@@ -9,7 +9,7 @@
     <!-- The page doesn't scroll: the release notes fill what's left and scroll on their own, so there is never a
          scrolling area inside another. -->
     <Grid Margin="32,28" MaxWidth="{StaticResource PageMaxWidth}" HorizontalAlignment="Stretch"
-          RowDefinitions="Auto,Auto,Auto,*" RowSpacing="18">
+          RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="18">
             <TextBlock Classes="h1" Text="Home" />
             <TextBlock Grid.Row="1" FontSize="15" TextWrapping="Wrap" Text="{Binding StatusMessage}"
                        IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -40,8 +40,29 @@
                 </StackPanel>
             </Border>
 
+            <!-- macOS: the mods library in RS Re-ARMed's mods folder. -->
+            <Border Grid.Row="3" Classes="card" IsVisible="{Binding IsMac}">
+                <Grid Classes="action" ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2">
+                        <TextBlock Classes="actionname" Text="{Binding MacModsTitle}" />
+                        <TextBlock TextWrapping="Wrap" Text="{Binding MacModsDetail}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button
+                            Classes="accent"
+                            Command="{Binding InstallMacModsCommand}"
+                            Content="{Binding InstallMacModsText}"
+                            IsVisible="{Binding CanInstallMacMods}" />
+                        <Button
+                            Command="{Binding RemoveMacModsCommand}"
+                            Content="Remove Mods"
+                            IsVisible="{Binding CanRemoveMacMods}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
             <!-- What's new: the latest published GitHub release. -->
-            <Border Grid.Row="3" Classes="card">
+            <Border Grid.Row="4" Classes="card">
                 <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12">
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">

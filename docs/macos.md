@@ -3,8 +3,9 @@
 RSMods works on Apple Silicon Macs through **RS Re-ARMed**, a native arm64 port of Rocksmith 2014 for macOS.
 
 **Status.** Many RSMods features have already been built for macOS using the approach described here. The plan is
-to bring them into this repository in steps (see [Plan](#plan)). The first step, this change, makes the configurator
-(`GUI.Core`, `GUI.Avalonia`) build and run on macOS and adds this document. It changes nothing on Windows.
+to bring them into this repository in steps (see [Plan](#plan)). The first step made the configurator
+(`GUI.Core`, `GUI.Avalonia`) build and run on macOS and added this document. The second adds the Mac mods library
+under `Mac/`. Neither changes anything on Windows.
 
 ### What you need
 
@@ -146,8 +147,15 @@ To build and run it on a Mac (with the .NET 10 SDK):
 dotnet run --project GUI.Avalonia -c Release
 ```
 
-It edits the real `RSMods.ini` of RS Re-ARMed; to try it on a copy, set `RS_NATIVE_HOME` to a folder laid out like
-RS Re-ARMed's.
+The build also runs `Mac/build.sh` (when the library's sources changed) and puts `rearmed-mods.dylib` beside the
+configurator. On the Home tab, **Install Mods** copies it into RS Re-ARMed's mods folder, **Update Mods** replaces a
+different installed one and **Remove Mods** takes it out (`MacModsLibrary`). It checks that RS Re-ARMed is there and
+new enough (its game exports the hook API), and that the game isn't running. The copy is renamed over the old file,
+since overwriting a loaded library in place keeps macOS' cached code signature, and loses the download's quarantine
+flag, which would stop the game loading it.
+
+It edits the real `RSMods.ini` and mods folder of RS Re-ARMed; to try it on a copy, set `RS_NATIVE_HOME` to a folder
+laid out like RS Re-ARMed's.
 
 The `GUI.Core` tests run on macOS too:
 
@@ -163,12 +171,12 @@ step.
 
 ### Where the Mac code lives in this repository
 
-The proposed layout, next to the Windows parts:
+The layout, next to the Windows parts:
 
 ```
 DLL/                 the Windows mods (unchanged)
 Mac/                 the Mac mods library: src/ (core and one file per mod), include/rs-rearmed/ (RS Re-ARMed's
-                     runtime headers, MIT), build.sh
+                     runtime headers, MIT), build.sh, VERSION
 GUI.Core/            shared configurator logic; Windows-only parts guarded, Mac folders in MacLocations
 GUI.Avalonia/        the configurator, for Windows and macOS
 mods.manifest.json   the settings, with which platforms have each mod
@@ -179,9 +187,8 @@ docs/macos.md        this document
   generates. The Mac library would report its own list of settings the same way, and the manifest would say which
   platforms have each mod. The configurator then shows the same screens on both and marks what isn't on macOS yet.
   All of the Mac library's `RSMods.ini` keys are already in the manifest, with the same sections and names.
-- **Installing.** On macOS the configurator would install the library itself: copy it into RS Re-ARMed's mods folder
-  and remove the download's quarantine flag. The configurator app is ad-hoc signed (not
-  notarized), so macOS asks to confirm it once, with **Open Anyway** in Privacy & Security.
+- **Installing.** On macOS the configurator installs the library itself (see above). Once it ships as an app, it
+  is ad-hoc signed (not notarized), so macOS asks to confirm it once, with **Open Anyway** in Privacy & Security.
 - **Builds.** A macOS runner builds the library and the configurator as an app bundle.
 
 ## Approaches chosen
@@ -201,10 +208,10 @@ docs/macos.md        this document
 
 ## Plan
 
-1. **This change:** the configurator builds and runs on macOS; this document.
-2. The configurator knows which mods the Mac has (the manifest's platforms) and lists Core Audio input devices.
-3. The Mac library is added under `Mac/`, with its build script.
-4. The configurator installs and updates the Mac library, and CI builds the configurator as a macOS app for the
-   releases.
+1. **Done:** the configurator builds and runs on macOS; this document.
+2. **This change:** the Mac library is added under `Mac/`, with its build script, and the configurator installs,
+   updates and removes it.
+3. The configurator knows which mods the Mac has (the manifest's platforms) and lists Core Audio input devices.
+4. CI builds the configurator as a macOS app for the releases.
 5. More mods on macOS, starting with the ones that need no new hook point: remove fingerprints, calibration,
    voice-over control, profile backups, then song accuracy, show current note and GuitarSpeak.
