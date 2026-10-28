@@ -16,7 +16,7 @@ public sealed class MacModsLibraryTests : IDisposable
     {
         string macOS = Path.Combine(_home.Path, "game", "Rocksmith2014.app", "Contents", "MacOS");
         Directory.CreateDirectory(macOS);
-        File.WriteAllText(Path.Combine(macOS, "Rocksmith2014"), supportsMods ? "\0_rc_hook_add\0" : "\0_main\0");
+        File.WriteAllText(Path.Combine(macOS, "Rocksmith2014"), supportsMods ? "\0RS_LOAD_MODS\0_rc_hook_add\0" : "\0_rc_hook_add\0");
     }
 
     private static void WriteLibrary(string path, string version) =>
@@ -31,7 +31,7 @@ public sealed class MacModsLibraryTests : IDisposable
     }
 
     [Fact]
-    public void AGameWithoutTheHookApiIsTooOld()
+    public void AGameWithoutTheModsLoaderIsTooOld()
     {
         AddGame(supportsMods: false);
         WriteLibrary(Bundled, "0.1.0");
@@ -40,12 +40,12 @@ public sealed class MacModsLibraryTests : IDisposable
     }
 
     [Fact]
-    public void TheHookApiIsFoundAcrossTheReadChunks()
+    public void TheModsLoaderIsFoundAcrossTheReadChunks()
     {
         AddGame();
         string game = Path.Combine(_home.Path, "game", "Rocksmith2014.app", "Contents", "MacOS", "Rocksmith2014");
         // The symbol straddles the first 1 MB chunk's end
-        File.WriteAllBytes(game, [.. new byte[(1 << 20) - 5], .. "_rc_hook_add"u8, .. new byte[100]]);
+        File.WriteAllBytes(game, [.. new byte[(1 << 20) - 5], .. "RS_LOAD_MODS"u8, .. new byte[100]]);
         WriteLibrary(Bundled, "0.1.0");
 
         Assert.Equal(MacModsState.NotInstalled, Library().GetState());

@@ -32,8 +32,9 @@ namespace RSMods
 
         // rsm_version_tag in Mac/src/rsmods.c
         private static readonly byte[] VersionMarker = Encoding.ASCII.GetBytes("rearmed-mods-version:");
-        // RS Re-ARMed 1.2.0 and later export the hook API to mods
-        private static readonly byte[] HookApiSymbol = Encoding.ASCII.GetBytes("_rc_hook_add");
+        // RS Re-ARMed 1.2.0 and later load the mods folder, which RS_LOAD_MODS=0 turns off. (Earlier builds export
+        // the hook API too, for a library inside the app, so that symbol doesn't tell them apart.)
+        private static readonly byte[] ModsLoaderMarker = Encoding.ASCII.GetBytes("RS_LOAD_MODS");
 
         private readonly Func<bool> _gameRunning;
 
@@ -69,7 +70,7 @@ namespace RSMods
         {
             if (!File.Exists(GameExecutable))
                 return MacModsState.NoRearmed;
-            if (!Contains(GameExecutable, HookApiSymbol))
+            if (!Contains(GameExecutable, ModsLoaderMarker))
                 return MacModsState.RearmedTooOld;
             if (!File.Exists(BundledLibrary))
                 return MacModsState.NoBundledLibrary;
