@@ -82,7 +82,7 @@ static const char DEFAULT_INI[] =
     "LoopStartKey = Y\n"
     "LoopEndKey = U\n"
     "RewindKey = Z\n"
-    "ShowSongTimerKey = N\n"
+    "ShowSongTimerKey = I\n"
     "ForceReEnumerationKey = F\n"
     "ToggleLoftKey = T\n"
     "RemoveLyricsKey = L\n"
@@ -122,7 +122,7 @@ static const struct {
     {"Toggle Switches", "SongPreviews", "off"},
     {"Toggle Switches", "ShowSongTimer", "off"},
     {"Toggle Switches", "ShowSongTimerWhen", "manual"},
-    {"Keybinds", "ShowSongTimerKey", "N"},
+    {"Keybinds", "ShowSongTimerKey", "I"},
     {"Toggle Switches", "VolumeControl", "off"},
     {"Toggle Switches", "ForceProfileLoad", "off"},
     {"Toggle Switches", "ForceReEnumeration", "off"},

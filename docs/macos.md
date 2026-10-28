@@ -150,7 +150,7 @@ dotnet run --project GUI.Avalonia -c Release
 The build also runs `Mac/build.sh` (when the library's sources changed) and puts `rearmed-mods.dylib` beside the
 configurator. On the Home tab, **Install Mods** copies it into RS Re-ARMed's mods folder, **Update Mods** replaces a
 different installed one and **Remove Mods** takes it out (`MacModsLibrary`). It checks that RS Re-ARMed is there and
-new enough (its game exports the hook API), and that the game isn't running. The copy is renamed over the old file,
+new enough (its game loads the mods folder), and that the game isn't running. The copy is renamed over the old file,
 since overwriting a loaded library in place keeps macOS' cached code signature, and loses the download's quarantine
 flag, which would stop the game loading it.
 
@@ -190,6 +190,42 @@ docs/macos.md        this document
 - **Installing.** On macOS the configurator installs the library itself (see above). Once it ships as an app, it
   is ad-hoc signed (not notarized), so macOS asks to confirm it once, with **Open Anyway** in Privacy & Security.
 - **Builds.** A macOS runner builds the library and the configurator as an app bundle.
+
+## Changing RSMods without breaking macOS
+
+The Mac library shares no code with `DLL/`, so changes to the Windows mods can't break it. What the two share is
+`RSMods.ini` and the configurator, and that is where a change can break macOS without anything failing on Windows.
+
+- **Settings.** The Mac library reads the same sections, keys and values as the DLL: `on`/`off`, the `...When`
+  values (`manual`, `automatic`, `song`, `startup`) and key names (letters, digits, `VK_` names). If a key is renamed
+  or moved to another section, or its values change, the Mac mod keeps reading the old one and quietly does nothing.
+  Change the Mac side in the same PR (`DEFAULT_INI` and `DEFAULTS` in `Mac/src/rsmods_ini.c`, and the mod's
+  `Mac/src/mod_*.c`), or open an issue for it. Adding keys or mods needs nothing on the Mac side.
+  `MacSettingsParityTests` (in `GUI.Core.Tests`, so it runs on Windows too) fails when a key the Mac library reads
+  is missing from `mods.manifest.json`, is in another section there, or has another default.
+- **The configurator** (`GUI.Core`, `GUI.Avalonia`) also builds for plain `net10.0` on macOS.
+  - Call Windows-only APIs (registry, WMI, DPAPI, window messages, `winmm`) behind an `OperatingSystem.IsWindows()`
+    check where the feature starts, as the existing code does. The platform compatibility analyzer (CA1416) warns
+    about calls without one in the macOS build.
+  - Give a Windows-only package `Condition="'$(RsModsMac)' != 'true'"`, and put code that uses it in
+    `#if WINDOWS` (defined by the `-windows` target framework).
+- **Tests.** Mark tests that depend on Windows behaviour (file locks, Windows paths, native Windows libraries) with
+  `[WindowsFact]` or `[WindowsTheory]`, which skip them elsewhere.
+
+**Checking on Windows.** `RsModsMac=true` builds the macOS flavour of the configurator on any system (without the
+Mac library, which needs clang). That catches unguarded Windows-only code and packages:
+
+```bash
+dotnet build GUI.Avalonia -c Release -p:RsModsMac=true
+dotnet test GUI.Core.Tests -c Release -p:RsModsMac=true
+```
+
+**On a Mac**, `dotnet build GUI.Avalonia` and `dotnet test GUI.Core.Tests` also build the Mac library
+(`Mac/build.sh`). Trying a change in the game needs RS Re-ARMed 1.2.0 or later.
+
+**Suggestions:**
+- **A macOS CI job** (plan step 4) that runs the two commands above and `Mac/build.sh` on every PR.
+- **Asking the Mac maintainers** to review PRs that rename or remove settings.
 
 ## Approaches chosen
 
