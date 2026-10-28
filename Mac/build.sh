@@ -7,6 +7,9 @@
 # The library uses RS Re-ARMed's runtime (rc_call_guest, rc_slide, rc_hook_add), resolved when the game loads it;
 # the declarations are in include/rs-rearmed (from RS Re-ARMed, MIT). It builds without the game.
 set -eu
+# The same sources give the same library: without this the linker records the object files' modification times,
+# and the configurator, which compares the installed library with its own, would offer every rebuild as an update
+export ZERO_AR_DATE=1
 here=$(cd "$(dirname "$0")" && pwd)
 install=0
 [ "${1:-}" = --install ] && install=1

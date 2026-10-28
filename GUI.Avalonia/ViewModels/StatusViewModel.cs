@@ -83,6 +83,8 @@ internal sealed partial class StatusViewModel : ObservableObject
         MacModsState.RearmedTooOld => "Your RS Re-ARMed doesn't load mods. Install its latest version (1.2.0 or later), then come back.",
         MacModsState.NoBundledLibrary => $"This build of RSMods doesn't carry the mods library. Build it with Mac/build.sh, or copy {MacModsLibrary.FileName} into RS Re-ARMed's mods folder yourself.",
         MacModsState.NotInstalled => "Install them to use them in RS Re-ARMed.",
+        MacModsState.UpdateAvailable when _macMods?.InstalledVersion == _macMods?.BundledVersion =>
+            $"Installed: another build of {_macMods?.InstalledVersion}. Update to this one.",
         MacModsState.UpdateAvailable => $"Installed: {_macMods?.InstalledVersion ?? "unknown"}. Update to this version ({_macMods?.BundledVersion}).",
         _ => "Start RS Re-ARMed to use them. Settings take effect while the game runs.",
     };
