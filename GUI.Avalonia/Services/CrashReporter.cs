@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Avalonia.Threading;
@@ -55,14 +57,40 @@ internal static class CrashReporter
             + $"\n\n{exception.Message}"
             + (log is null ? string.Empty : $"\n\nThe details were saved to:\n{log}");
 
-        // A native box needs no running Avalonia, so it also works when startup itself failed. Off Windows there is
-        // none: the message goes to the console, the details to the log.
-        if (!OperatingSystem.IsWindows())
+        // A native box needs no running Avalonia, so it also works when startup itself failed
+        if (OperatingSystem.IsWindows())
         {
-            Console.Error.WriteLine(text);
+            MessageBoxW(IntPtr.Zero, text, "RSMods error", MB_ICONERROR);
             return;
         }
-        MessageBoxW(IntPtr.Zero, text, "RSMods error", MB_ICONERROR);
+        Console.Error.WriteLine(text);
+        if (OperatingSystem.IsMacOS())
+            ShowMacAlert(text);
+    }
+
+    // macOS' counterpart of the message box: an alert from osascript, which also needs no running Avalonia. Like the
+    // message box, it waits until it is closed. The text is passed as an argument, so it needs no quoting.
+    private static void ShowMacAlert(string text)
+    {
+        try
+        {
+            using Process? osascript = Process.Start(new ProcessStartInfo("/usr/bin/osascript")
+            {
+                ArgumentList =
+                {
+                    "-e", "on run argv",
+                    "-e", "display alert \"RSMods error\" message (item 1 of argv) as critical",
+                    "-e", "end run",
+                    text,
+                },
+                UseShellExecute = false,
+            });
+            osascript?.WaitForExit();
+        }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException)
+        {
+            // The console and the log still have it
+        }
     }
 
     private static string? WriteLog(Exception exception)

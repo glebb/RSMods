@@ -143,7 +143,7 @@ The Avalonia configurator is mostly cross-platform already. Minor changes make i
   | ASIO, MIDI and WASAPI device lists | Empty (a Core Audio device list is planned). |
   | WMI drive types (Fast Load) | Unknown. |
   | Twitch token store (DPAPI) | Nothing is stored (tokens are never saved unencrypted); Twitch effects need the Windows DLL anyway. |
-  | Crash reporter's message box | Replaced by the console and the log file. |
+  | Crash reporter's message box | A native alert (`osascript`), with the details in the log file as on Windows. |
   | SoundPack import and export (7-Zip's Windows library, ACM for MP3) | Not on macOS yet. |
 
 - **Folders.** `MacLocations` knows RS Re-ARMed's folders: `~/Library/Application Support/RS Re-ARMed/game` for the
