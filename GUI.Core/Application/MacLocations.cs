@@ -23,6 +23,18 @@ namespace RSMods
             }
         }
 
+        /// <summary>RSMods' own files (its settings, Twitch files, work folders); created when asked for.</summary>
+        public static string DataFolder
+        {
+            get
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    "Library", "Application Support", "RSMods");
+                Directory.CreateDirectory(folder);
+                return folder;
+            }
+        }
+
         /// <summary>The game folder: Rocksmith2014.app, the game's files (linked from the Steam install) and RSMods.ini.</summary>
         public static string GameFolder => Path.Combine(Home, "game");
 

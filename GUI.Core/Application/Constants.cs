@@ -1,12 +1,21 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using RSMods.Core;
 
 namespace RSMods.Data
 {
     public static class Constants
     {
-        // The executable's own directory (replaces Application.StartupPath / Application.ExecutablePath).
-        private static string BaseDirectory => System.AppContext.BaseDirectory;
+        // Where RSMods keeps its own files: the executable's own directory (replaces Application.StartupPath /
+        // Application.ExecutablePath). On macOS the app bundle isn't writable when downloaded and is replaced by an
+        // update, so there it is ~/Library/Application Support/RSMods.
+        // Tests set it to a folder of their own.
+        public static string DataDirectory
+        {
+            get => _dataDirectory ??= OperatingSystem.IsWindows() ? AppContext.BaseDirectory : MacLocations.DataFolder;
+            set => _dataDirectory = value;
+        }
+        private static string _dataDirectory;
 
         public static string RSFolder { get; set; }
         public static string SavePath { get; set; }
@@ -23,11 +32,11 @@ namespace RSMods.Data
             });
         }
 
-        public static string SettingsPath { get { return Path.Combine(BaseDirectory, "GUI_Settings.ini"); } }
-        public static string TwitchTokenPath { get { return Path.Combine(BaseDirectory, "TwitchAuth.dat"); } }
-        public static string TwitchRewardsPath { get { return Path.Combine(BaseDirectory, "TwitchEnabledEffects.xml"); } }
+        public static string SettingsPath { get { return Path.Combine(DataDirectory, "GUI_Settings.ini"); } }
+        public static string TwitchTokenPath { get { return Path.Combine(DataDirectory, "TwitchAuth.dat"); } }
+        public static string TwitchRewardsPath { get { return Path.Combine(DataDirectory, "TwitchEnabledEffects.xml"); } }
         public static string CachePsarcPath { get { return Path.Combine(RSFolder, "cache.psarc"); } }
-        public static string WorkFolder { get { return Path.Combine(BaseDirectory, "Temp"); } }
+        public static string WorkFolder { get { return Path.Combine(DataDirectory, "Temp"); } }
         public static string CachePcPath { get { return Path.Combine(WorkFolder, "cache_psarc_RS2014_Pc"); } }
         public static string Cache3_7zPath { get { return Path.Combine(CachePcPath, "cache3.7z"); } }
         public static string Cache4_7zPath { get { return Path.Combine(CachePcPath, "cache4.7z"); } }
@@ -36,7 +45,7 @@ namespace RSMods.Data
         public static string WwiseInitBnk_CustomPath { get { return Path.Combine(CustomModsFolder, "init.bnk"); } }
         public static string LocalizationCSV_InternalPath { get { return Path.Combine("localization", "maingame.csv"); } }
         public static string TuningsJSON_InternalPath { get { return Path.Combine("manifests", "tuning.database.json"); } }
-        public static string CustomModsFolder { get { return Path.Combine(BaseDirectory, "CustomMods"); } }
+        public static string CustomModsFolder { get { return Path.Combine(DataDirectory, "CustomMods"); } }
         public static string LocalizationCSV_CustomPath { get { return Path.Combine(CustomModsFolder, "maingame.csv"); } }
         public static string TuningJSON_CustomPath { get { return Path.Combine(CustomModsFolder, "tuning.database.json"); } }
         public static string IntroGFX_InternalPath { get { return Path.Combine("gfxassets", "views", "introsequence.gfx"); } }

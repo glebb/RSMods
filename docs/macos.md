@@ -157,6 +157,13 @@ flag, which would stop the game loading it.
 It edits the real `RSMods.ini` and mods folder of RS Re-ARMed; to try it on a copy, set `RS_NATIVE_HOME` to a folder
 laid out like RS Re-ARMed's.
 
+**The app.** `Build/Publish-Configurator-macOS.sh`, the counterpart of `Build/Publish-Configurator.ps1`, makes
+`Build/Artifacts/configurator/osx-arm64/RSMods.app`: self-contained (no .NET needed), with the RSMods icon and the
+Mac library; `--zip` also makes the release download. It is ad-hoc signed, not notarized, so macOS asks to confirm it
+once, with **Open Anyway** in Privacy & Security. On macOS the configurator keeps its own files (`GUI_Settings.ini`,
+the Twitch files, its work folders) in `~/Library/Application Support/RSMods`, not beside the executable as on
+Windows: an app bundle isn't writable when downloaded and is replaced by an update.
+
 The `GUI.Core` tests run on macOS too:
 
 ```bash
@@ -187,9 +194,8 @@ docs/macos.md        this document
   generates. The Mac library would report its own list of settings the same way, and the manifest would say which
   platforms have each mod. The configurator then shows the same screens on both and marks what isn't on macOS yet.
   All of the Mac library's `RSMods.ini` keys are already in the manifest, with the same sections and names.
-- **Installing.** On macOS the configurator installs the library itself (see above). Once it ships as an app, it
-  is ad-hoc signed (not notarized), so macOS asks to confirm it once, with **Open Anyway** in Privacy & Security.
-- **Builds.** A macOS runner builds the library and the configurator as an app bundle.
+- **Installing.** On macOS the configurator installs the library itself (see above).
+- **Builds.** A macOS runner runs `Build/Publish-Configurator-macOS.sh --zip` for the releases.
 
 ## Changing RSMods without breaking macOS
 
@@ -245,9 +251,9 @@ dotnet test GUI.Core.Tests -c Release -p:RsModsMac=true
 ## Plan
 
 1. **Done:** the configurator builds and runs on macOS; this document.
-2. **This change:** the Mac library is added under `Mac/`, with its build script, and the configurator installs,
-   updates and removes it.
+2. **This change:** the Mac library is added under `Mac/`, with its build script, the configurator installs,
+   updates and removes it, and `Build/Publish-Configurator-macOS.sh` makes the configurator a macOS app.
 3. The configurator knows which mods the Mac has (the manifest's platforms) and lists Core Audio input devices.
-4. CI builds the configurator as a macOS app for the releases.
+4. CI builds the macOS app for the releases.
 5. More mods on macOS, starting with the ones that need no new hook point: remove fingerprints, calibration,
    voice-over control, profile backups, then song accuracy, show current note and GuitarSpeak.

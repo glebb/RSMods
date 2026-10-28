@@ -1,6 +1,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using Avalonia.Threading;
+using RSMods.Data;
 
 namespace RSMods.Services;
 
@@ -67,8 +68,8 @@ internal static class CrashReporter
     private static string? WriteLog(Exception exception)
     {
         string entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {exception}{Environment.NewLine}{Environment.NewLine}";
-        // Next to RSMods first; the temp folder if that one isn't writable.
-        foreach (string folder in new[] { AppContext.BaseDirectory, Path.GetTempPath() })
+        // With RSMods' own files first (next to RSMods on Windows); the temp folder if that one isn't writable.
+        foreach (string folder in new[] { Constants.DataDirectory, Path.GetTempPath() })
         {
             try
             {
