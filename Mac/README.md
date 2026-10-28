@@ -45,7 +45,7 @@ in `RSMods.ini` or, for the log, the environment.
 
 | Setting | What it does |
 |---|---|
-| `RS_MODS_LOG=1` (environment) | Logs what the mods do to stderr, which RS Re-ARMed writes to `logs/last-run.log`. With it, turning the loft off also logs every camera in memory. |
+| `RS_MODS_LOG=1` (environment) | Logs what the mods do to stderr, which RS Re-ARMed writes to `logs/last-run.log`. With it, turning the loft off with its key also logs every camera in memory. |
 | `[Keybinds] SceneDumpKey` | Writes every scene object and render step, with its class and name, to `scene-dump.txt` in the game folder. |
 | `[Toggle Switches] HideNodes` | Scene objects to hide, comma separated (`name*` matches a prefix). |
 | `[Toggle Switches] HideSteps` | Render steps to switch off, comma separated. |

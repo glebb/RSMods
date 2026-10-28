@@ -5,7 +5,7 @@ RSMods works on Apple Silicon Macs through **RS Re-ARMed**, a native arm64 port 
 **Status.** Many RSMods features have already been built for macOS using the approach described here. The plan is
 to bring them into this repository in steps (see [Plan](#plan)). The first step made the configurator
 (`GUI.Core`, `GUI.Avalonia`) build and run on macOS and added this document. The second adds the Mac mods library
-under `Mac/`. Neither changes anything on Windows.
+under `Mac/` and makes the configurator a macOS app that installs it. Neither changes anything on Windows.
 
 ### What you need
 
@@ -15,6 +15,15 @@ under `Mac/`. Neither changes anything on Windows.
 
 The Steam copy of the Mac game runs under Rosetta (Intel emulation) and can't load mods, so on macOS RSMods runs only
 in RS Re-ARMed.
+
+### Installing
+
+1. Download `RSMods-<version>-macOS.zip`, open it and move **RSMods.app** to Applications.
+2. Open it. The first time, macOS says it can't verify the developer: the app isn't notarized by Apple. Go to
+   **System Settings › Privacy & Security**, click **Open Anyway** next to RSMods, and confirm.
+3. Quit RS Re-ARMed if it's running, and click **Install Mods** on the Home tab. Home also shows when a newer
+   RSMods has a newer Mac library (**Update Mods**), and **Remove Mods** takes it out again.
+4. Turn mods on in **Mod Settings** and start RS Re-ARMed.
 
 ### Settings
 
@@ -28,7 +37,7 @@ may need **Fn**. Where RSMods uses Ctrl + a key, use the Control key.
 
 ### What works, and how it differs
 
-These mods are already built for macOS and will be added to this repository in a later change.
+These mods are in the Mac library (`Mac/`):
 
 | Mod | On macOS |
 |---|---|
@@ -161,7 +170,7 @@ laid out like RS Re-ARMed's.
 `Build/Artifacts/configurator/osx-arm64/RSMods.app`: self-contained (no .NET needed), with the RSMods icon and the
 Mac library; `--zip` also makes the release download. It is ad-hoc signed, not notarized, so macOS asks to confirm it
 once, with **Open Anyway** in Privacy & Security. On macOS the configurator keeps its own files (`GUI_Settings.ini`,
-the Twitch files, its work folders) in `~/Library/Application Support/RSMods`, not beside the executable as on
+the Twitch files, its work folders, the crash log) in `~/Library/Application Support/RSMods`, not beside the executable as on
 Windows: an app bundle isn't writable when downloaded and is replaced by an update.
 
 The `GUI.Core` tests run on macOS too:
